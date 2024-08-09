@@ -1,0 +1,64 @@
+body {
+    margin: 0;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+.content {
+    padding-top: 5%;
+    width: 45%; 
+    margin: 0 auto; 
+    padding: 20px;
+}
+
+.WelcomeMsg {
+    margin-left: 20px;
+    display: flex;
+    align-items: center;
+}
+
+.WelcomeMsg img{
+    margin-left: 10px; 
+    width: 40px; 
+    height: 40px; 
+    border-radius: 50%;
+}
+
+.cards {
+    display: flex;
+}
+
+.stats_card {
+    width: 220px;
+    border: 2px solid #000;
+    border-radius: 5px;
+    background-color: #fff;
+    font-family: 'Courier New', Courier, monospace;
+    color: #000;
+    margin: 20px;
+    text-align: center;
+    box-shadow: 4px 4px 0px #000;
+}
+
+.stats_card_header {
+    background-color: #e0e0e0;
+    padding: 10px;
+    border-bottom: 2px solid #000;
+}
+
+.stats_card_header h2 {
+    margin: 0;
+    font-size: 16px;
+}
+
+.stats_card_body {
+    padding: 20px;
+}
+
+.stats_card_body h3 {
+    font-size: 36px;
+    margin: 10px 0;
+    font-weight: bold;
+    color: #333;
+}
+
+

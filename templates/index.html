@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+
+{% block head %}
+
+{% endblock %}
+
+
+{% block body %}
+    <div class="content">
+        <h1>GitHub Stats</h1>
+        <p>This web app allows users to search for a GitHub user by username and view detailed statistics about their profile. 
+            It provides insights into the user's overall activity and contributions, as well as more granular details about their repositories.
+            Users can explore metrics such as the number of open and closed pull requests, and track the latest activities on their repositories.
+            Additionally, the app enables users to share these insights on social media, facilitating the sharing of achievements and collaborative efforts with their network.
+        </p>
+        <br>
+        <form action="/" method="post">
+            <label for="username">Username: </label>
+            <input type="text" id="username" name="username">
+            <input type="submit" value="Search">
+        </form>
+        {% if error %}
+            <p style="color: red;">{{ error }}</p>
+        {% endif %}
+
+        {% if user and repos %}
+            <p style="color: green;">User found !</p>
+
+            <div class="WelcomeMsg">
+                <h2>Welcome {{ user['login'] }}</h2>
+                {% if user['avatar_url'] %}
+                    <img src="{{ user['avatar_url'] }}" alt="">
+                {% endif %}
+            </div>
+
+            <div class="cards">
+                
+                <div class="stats_card">
+                    <div class="stats_card_header">
+                        <h2>Public Repos</h2>
+                    </div>
+                    <div class="stats_card_body">
+                        <h3>{{ user['public_repos'] }}</h3>
+                    </div>
+                </div>
+
+                <div class="stats_card">
+                    <div class="stats_card_header">
+                        <h2>Followers</h2>
+                    </div>
+                    <div class="stats_card_body">
+                        <h3>{{ user['followers'] }}</h3>
+                    </div>
+                </div>
+
+                <div class="stats_card">
+                    <div class="stats_card_header">
+                        <h2>Public Gists</h2>
+                    </div>
+                    <div class="stats_card_body">
+                        <h3>{{ user['public_gists'] }}</h3>
+                    </div>
+                </div>
+
+            </div>
+            <br>
+            <br>
+            <div class="star-plot-container">
+                <h2>See How Your Repositories Shine</h2>
+                <p>
+                    We noticed you have quite a few repositories on your profile !
+                    Below, you'll find a chart showcasing all your public repositories along with their star counts.
+                    This visualization highlights how much your work is appreciated by the community.
+                    Enjoy exploring the impact of your contributions!
+                </p>
+                {{ star_plot|safe }}
+            </div>
+
+            <br>
+
+            <div class="language_plot_container">
+                <h2>Language Distribution</h2>
+                <p>
+                    Curious about the programming languages used in your projects?
+                    You're in luck! 
+                    Below, you'll find a pie chart that illustrates the percentage of each programming language you've used across all your repositories.
+                    This visualization highlights the diversity of languages in your projects and provides a clear overview of your coding preferences.
+                </p>
+                {{ language_plot | safe }}
+            </div>
+
+            <br>
+
+            
+
+
+        {% endif %}
+    </div>
+    
+    
+    
+{% endblock %}
