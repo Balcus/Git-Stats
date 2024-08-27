@@ -12,18 +12,21 @@
             It provides insights into the user's overall activity and contributions, as well as more granular details about their repositories.
             Users can explore metrics such as the number of open and closed pull requests, and track the latest activities on their repositories.
             Additionally, the app enables users to share these insights on social media, facilitating the sharing of achievements and collaborative efforts with their network.
+            Please note that only the username is strictly required but the token would greatly improve the requests/hour from 60 to 5.000.
         </p>
         <br>
         <form action="/" method="post">
             <label for="username">Username: </label>
             <input type="text" id="username" name="username">
+            <label for="token">Token: </label>
+            <input type="text" name="token" id="token">
             <input type="submit" value="Search">
         </form>
         {% if error %}
             <p style="color: red;">{{ error }}</p>
         {% endif %}
 
-        {% if user and repos %}
+        {% if not error and user and repos %}
             <p style="color: green;">User found !</p>
 
             <div class="WelcomeMsg">
@@ -74,6 +77,11 @@
                     Enjoy exploring the impact of your contributions!
                 </p>
                 {{ star_plot|safe }}
+                <br>
+                <p>Overall, you've accumulated an impressive total of: 
+                    <span style="color: rgb(255, 166, 0); font-weight: bold; font-size: 18px;"> {{total_stars}} <i class="fa-regular fa-star"></i></span>
+                </p>
+                
             </div>
 
             <br>
@@ -91,12 +99,121 @@
 
             <br>
 
+            {% if contributions_plot %}
+            <div class="activity_plot">
+                <h2>Activity Map</h2>
+                <p>
+                    The activity scatter timeline is an invaluable tool for visualizing engagement and activity patterns over time. 
+                    Whether you're assessing your own activities or those of others, this scatter plot provides a clear, time-based 
+                    snapshot of different events and actions taken throughout the year.
+                    Below, you'll find a scatter timeline that visualizes your activities over the past few months. 
+                    Each point on the timeline represents a specific activity on a given date, providing an insightful overview of your engagement patterns and trends.
+                </p>
+                {{ contributions_plot | safe }}
+            </div>
+            {% endif %}
+
+            <br>
+
+            <div class="milestones">
+                <h2>Milestones and Achievements</h2>
+                <p>
+                    Celebrate your coding journey and recognize your contributions! 
+                    This section highlights the significant milestones and achievements you've unlocked along the way.
+                    From making your first commit to engaging with the community, each milestone represents a step forward in your development journey. 
+                    Track your progress, showcase your accomplishments, and be proud of the impact you're making in the world of code.
+                </p>
+                <br>
+                <div class="badge-container">
+
+                    {% if repos %}
+                    <div class="badge">
+                        <i class="fa-brands fa-github"></i>
+                        <div class="badge-content">
+                            <h2>Out in the Open</h2>
+                            <p>Make your first pubilc repository :</p>
+                            <a href = "{{ repos[0]['html_url'] }}" style="text-decoration: none; color: black;"> {{repos[0]['name']}} : {{repos[0]['created_at'][:10]}} </a>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if first100stars %}
+                    <div class="badge">
+                        <i class="fa-solid fa-star-and-crescent"></i>
+                        <div class="badge-content">
+                            <h2>Constellation Complete</h2>
+                            <p>Reached 100 stars on your repository :</p>
+                            <a href = "{{ first100stars['html_url'] }}" style="text-decoration: none; color: black;"> {{first100stars['name']}} : {{first100stars['created_at'][:10]}} </a>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if firstFork %}
+                    <div class="badge">
+                        <i class="fa-solid fa-code-branch"></i>
+                        <div class="badge-content">
+                            <h2>Branching Out</h2>
+                            <p>Received your first fork :</p>
+                            <a href="{{ firstFork['html_url'] }}" style="text-decoration: none; color: black;"> {{firstFork['name']}} : {{firstFork['created_at'][:10]}} </a>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if firstCollab %}
+                    <div class="badge">
+                        <i class="fa-solid fa-handshake"></i>
+                        <div class="badge-content">
+                            <h2>Code Samaritan</h2>
+                            <p>First accepted contribution from another developer :</p>
+                            <a href="{{ firstCollab[0]['html_url'] }}" style="text-decoration: none; color: black;"> {{firstCollab[0]['name']}} : {{firstCollab[1]['created_at'][:10]}} </a>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if employed %}
+                    <div class="badge">
+                        <i class="fa-solid fa-suitcase"></i>
+                        <div class="badge-content">
+                            <h2>Professional Milestone</h2>
+                            <p>The user is currently employed at :</p>
+                            <p>{{ employed }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if total_commits >= 10 %}
+                    <div class="badge">
+                        <i class="fa-solid fa-code-commit"></i>
+                        <div class="badge-content">
+                            <h2>Commit Rookie</h2>
+                            <p>Make your first 10 commits</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+            </div>
+
+            <div class="fin">
+                <h2>Thank you !</h2>
+                <p>
+                    Thank you for using my small project! I truly appreciate your time and interest in exploring what it has to offer.
+                    Your support and engagement mean a lot to me, and I'm committed to providing you with valuable and enjoyable experiences.
+                    Whether you're here to track your milestones, celebrate achievements, or simply from curiosity, I'm grateful to have you here. 
+                    If you have any feedback or suggestions, please don't hesitate to reach out. Down below you will find a link to my GitHub profile and my email adress.
+                </p>
+                <br>
+                <div class="icon-links">
+                    <a href="https://github.com/Balcus" target="_blank" aria-label="GitHub">
+                        <i class="fab fa-github"></i>
+                    </a>
             
-
-
+                    <a href="mailto:bbalcus04@gmail.com" aria-label="Email">
+                        <i class="fas fa-envelope"></i>
+                    </a>
+                </div>
+            </div>
+            
         {% endif %}
     </div>
-    
-    
     
 {% endblock %}

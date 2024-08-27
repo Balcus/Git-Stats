@@ -3,29 +3,78 @@ from typing import Dict, Any, Union
 import pandas as pd #type: ignore
 import plotly.express as px #type: ignore
 import plotly.io as pio #type: ignore
+from datetime import datetime
+import pytz #type: ignore
 
 class API :
-    def __init__(self, username : str) -> None:
+    def __init__(self, username : str, token : str = None) -> None:
         self.username = username
-        self.headers = {"Accept" : "application/vnd.github.v3+json"}
+        self.token = token
+        self.headers = { "Accept" : "application/vnd.github.v3+json"}
+        if token and len(token) == 40 :
+            self.headers["Authorization"] = f"token {self.token}"
+            print(self.headers)
 
-    def getUserDict(self) -> Union[Dict[str, Any], int] :
+    def fetchUserDict(self) -> Union[Dict[str, Any], int] :
         url = f"https://api.github.com/users/{self.username}"
-        req = requests.get(url, self.headers)
-        if req.status_code == 200:
-            user_dict = req.json()
+        response = requests.get(url, self.headers)
+        if response.status_code == 200:
+            user_dict = response.json()
             return user_dict
+        elif response.status_code == 403:
+            if 'X-RateLimit-Remaining' in response.headers and response.headers['X-RateLimit-Remaining'] == '0':
+                reset_time = int(response.headers['X-RateLimit-Reset'])
+                reset_time_human = datetime.fromtimestamp(reset_time, tz=pytz.timezone('Europe/Bucharest')).strftime('%Y-%m-%d %H:%M:%S')
+                return [-1, reset_time_human]
         else :
-            return -1
+            return None
         
-    def getReposDict(self):
+    def fetchReposDict(self):
         url = f"https://api.github.com/users/{self.username}/repos"
-        req = requests.get(url, self.headers)
-        if req.status_code == 200 :
-            repos_dict = req.json()
-            return repos_dict
+        response = requests.get(url, self.headers)
+        if response.status_code == 200 :
+            repos_dict = response.json()
+            return sorted(repos_dict, key=lambda repo : repo['created_at'])
+        elif response.status_code == 403:
+            if 'X-RateLimit-Remaining' in response.headers and response.headers['X-RateLimit-Remaining'] == '0':
+                reset_time = int(response.headers['X-RateLimit-Reset'])
+                reset_time_human = datetime.fromtimestamp(reset_time, tz=pytz.timezone('Europe/Bucharest')).strftime('%Y-%m-%d %H:%M:%S')
+                return [-1, reset_time_human]
         else :
-            return -1
+            return None
+        
+    def fetchEvents(self):
+        url = f"https://api.github.com/users/{self.username}/events"
+        events = []
+        while url:
+            response = requests.get(url, headers=self.headers)
+            if response.status_code == 200:
+                events.extend(response.json())
+                url = response.links.get('next', {}).get('url')
+            elif response.status_code == 403:
+                if 'X-RateLimit-Remaining' in response.headers and response.headers['X-RateLimit-Remaining'] == '0':
+                    reset_time = int(response.headers['X-RateLimit-Reset'])
+                    reset_time_human = datetime.fromtimestamp(reset_time, tz=pytz.timezone('Europe/Bucharest')).strftime('%Y-%m-%d %H:%M:%S')
+                    return [-1, reset_time_human]
+            else:
+                return None
+        return events
+    
+    def fetchCommits(self, owner, repo):
+        commits = []
+        url = f"https://api.github.com/repos/{owner}/{repo}/commits?author={self.username}"
+        response = requests.get(url, headers=self.headers)
+        if response.status_code == 200 :
+            commits.extend(response.json())
+            return commits
+        elif response.status_code == 403:
+            if 'X-RateLimit-Remaining' in response.headers and response.headers['X-RateLimit-Remaining'] == '0':
+                reset_time = int(response.headers['X-RateLimit-Reset'])
+                reset_time_human = datetime.fromtimestamp(reset_time, tz=pytz.timezone('Europe/Bucharest')).strftime('%Y-%m-%d %H:%M:%S')
+                return [-1, reset_time_human]
+        else :
+            return None
+    
         
     def makeStarPlot(self, repos_dict):
         repo_links, stars, hover_texts = [], [], []
@@ -50,6 +99,12 @@ class API :
 
         return graph_html
     
+    def getTotalStars(self, repos_dict):
+        stars = 0
+        for rd in repos_dict :
+            stars += rd['stargazers_count']
+        return stars
+    
     def makeLanguageDistributionPlot(self, repos_dict):
         df = pd.DataFrame(repos_dict)
         df['language'] = df['language'].fillna('Unknown')
@@ -57,5 +112,81 @@ class API :
         fig = px.pie(df, names='language', values='size', title=title)
         return pio.to_html(fig, full_html=False)
     
+    def extractContributions(self, events):
+        contributions = []
+        for event in events:
+                event_date = event['created_at'].split('T')[0]
+                contributions.append(dict(Task=f"{event['type']}", Date=f"{event_date}"))
+        return contributions
     
+    def makeActivityMap(self, contributions):
+        df = pd.DataFrame(contributions)
+        df['Date'] = pd.to_datetime(df['Date'])
+        
+        fig = px.scatter(
+            df, 
+            x="Date", 
+            y="Task", 
+            color="Task", 
+            title="Scatter Plot of Activities Over Time",
+            labels={"Task": "Activity Type", "Date": "Date"}
+        )
+        
+        fig.update_layout(
+            xaxis_title='Date',
+            yaxis_title='Activity Type',
+            xaxis=dict(
+                tickformat="%Y-%m-%d",  
+                tickangle=45  
+            ),
+            yaxis=dict(
+                categoryorder="total ascending"  
+            ),
+            showlegend=False  
+        )
+        
+        return pio.to_html(fig, full_html=False)
+    
+    def getFirst100StarRepo(self, repos_dict):
+        for rd in repos_dict :
+            if rd['stargazers_count'] >= 100 :
+                return rd
+        return None
+    
+    def getFirstForkRepo(self, repos_dict):
+        for rd in repos_dict :
+            if rd.get('fork') is True :
+                return rd
+        return None
+    
+    def getFirstCollaboration(self, repos_dict):
+        for rd in repos_dict:
+            pr_url = f"https://api.github.com/repos/{self.username}/{rd['name']}/pulls?state=all&sort=created&direction=asc"
+            pr_response = requests.get(pr_url, headers=self.headers)
+            
+            if pr_response.status_code == 200:
+                pull_requests = pr_response.json()
+                for pr in pull_requests:
+                    if pr['user']['login'] != self.username:
+                        return [rd, pr]
+        return None
+    
+    def getEmploymnet(self, user_dict):
+        if user_dict['company'] != 'Not specified' :
+            return user_dict['company']
+        return None
+    
+    def getCommitNumber(self, repos_dict):
+        total_commits = 0
+        for rd in repos_dict :
+            owner = rd['owner']['login']
+            repo_name = rd['name']
+            commits = self.fetchCommits(owner, repo_name)   
+            total_commits += len(commits)
+
+        return total_commits
+
+
+        
+        
 
