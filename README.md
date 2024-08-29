@@ -66,9 +66,13 @@ python app.py
 
 ## Usage 
 1. Start the Web Application: Follow the installation instructions to run the application. Once it's running, open your browser and navigate to the provided local address.
+
 2. Provide the username you'd like to search for. Optionally, you can also include a GitHub Token to increase your request limit
+
 3. Visualize Your GitHub Stats: Explore your GitHub profile's data, including repositories, commits, stars, and more. The web app provides a clear and organized view of your GitHub activity.
+
 4. Earn Achievement Badges: Reach specific milestones such as: Constellation Complete or Branching Out.
+
 5. Customize or Expand the Project (optional): Feel free to modify the code to add more features, customize the interface, or tailor the badges to better suit your preferences.
 
 ## Contact
