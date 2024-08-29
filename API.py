@@ -15,7 +15,7 @@ class API :
             self.headers["Authorization"] = f"token {self.token}"
             print(self.headers)
 
-    def fetchUserDict(self) -> Union[Dict[str, Any], int] :
+    def fetchUserDict(self) -> Union[Dict[str, Any], List[Union[int, str]], None]:
         url = f"https://api.github.com/users/{self.username}"
         response = requests.get(url, self.headers)
         if response.status_code == 200:
@@ -29,7 +29,7 @@ class API :
         else :
             return None
         
-    def fetchReposDict(self):
+    def fetchReposDict(self) -> Union[List[Dict[str, Any]], List[Union[int, str]], None]:
         url = f"https://api.github.com/users/{self.username}/repos"
         response = requests.get(url, self.headers)
         if response.status_code == 200 :
@@ -43,7 +43,7 @@ class API :
         else :
             return None
         
-    def fetchEvents(self):
+    def fetchEvents(self) -> Union[List[Dict[str, Any]], List[Union[int, str]], None]:
         url = f"https://api.github.com/users/{self.username}/events"
         events = []
         while url:
@@ -60,7 +60,7 @@ class API :
                 return None
         return events
     
-    def fetchCommits(self, owner, repo):
+    def fetchCommits(self, owner: str, repo: str) -> Union[List[Dict[str, Any]], List[Union[int, str]], None]:
         commits = []
         url = f"https://api.github.com/repos/{owner}/{repo}/commits?author={self.username}"
         response = requests.get(url, headers=self.headers)
@@ -76,7 +76,7 @@ class API :
             return None
     
         
-    def makeStarPlot(self, repos_dict):
+    def makeStarPlot(self, repos_dict: List[Dict[str, Any]]) -> str:
         repo_links, stars, hover_texts = [], [], []
 
         for rd in repos_dict :
@@ -99,27 +99,27 @@ class API :
 
         return graph_html
     
-    def getTotalStars(self, repos_dict):
+    def getTotalStars(self, repos_dict: List[Dict[str, Any]]) -> int:
         stars = 0
         for rd in repos_dict :
             stars += rd['stargazers_count']
         return stars
     
-    def makeLanguageDistributionPlot(self, repos_dict):
+    def makeLanguageDistributionPlot(self, repos_dict: List[Dict[str, Any]]) -> str:
         df = pd.DataFrame(repos_dict)
         df['language'] = df['language'].fillna('Unknown')
         title = "Repository Language Distribution"
         fig = px.pie(df, names='language', values='size', title=title)
         return pio.to_html(fig, full_html=False)
     
-    def extractContributions(self, events):
+    def extractContributions(self, events: List[Dict[str, Any]]) -> List[Dict[str, str]]:
         contributions = []
         for event in events:
                 event_date = event['created_at'].split('T')[0]
                 contributions.append(dict(Task=f"{event['type']}", Date=f"{event_date}"))
         return contributions
     
-    def makeActivityMap(self, contributions):
+    def makeActivityMap(self, contributions: List[Dict[str, str]]) -> str:
         df = pd.DataFrame(contributions)
         df['Date'] = pd.to_datetime(df['Date'])
         
@@ -147,19 +147,19 @@ class API :
         
         return pio.to_html(fig, full_html=False)
     
-    def getFirst100StarRepo(self, repos_dict):
+    def getFirst100StarRepo(self, repos_dict: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
         for rd in repos_dict :
             if rd['stargazers_count'] >= 100 :
                 return rd
         return None
     
-    def getFirstForkRepo(self, repos_dict):
+    def getFirstForkRepo(self, repos_dict: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
         for rd in repos_dict :
             if rd.get('fork') is True :
                 return rd
         return None
     
-    def getFirstCollaboration(self, repos_dict):
+    def getFirstCollaboration(self, repos_dict: List[Dict[str, Any]]) -> Optional[List[Dict[str, Any]]]:
         for rd in repos_dict:
             pr_url = f"https://api.github.com/repos/{self.username}/{rd['name']}/pulls?state=all&sort=created&direction=asc"
             pr_response = requests.get(pr_url, headers=self.headers)
@@ -171,12 +171,12 @@ class API :
                         return [rd, pr]
         return None
     
-    def getEmploymnet(self, user_dict):
+    def getEmployment(self, user_dict: Dict[str, Any]) -> Optional[str]:
         if user_dict['company'] != 'Not specified' :
             return user_dict['company']
         return None
     
-    def getCommitNumber(self, repos_dict):
+    def getCommitNumber(self, repos_dict: List[Dict[str, Any]]) -> int:
         total_commits = 0
         for rd in repos_dict :
             owner = rd['owner']['login']
