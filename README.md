@@ -43,7 +43,7 @@ By connecting to GitHub's API, this tool provides you with insightful data on yo
 ## Installation
 1. Clone Repository :
 ```bash
-git clone https://github.com/YourUsername/Git-Stats.git
+git clone https://github.com/Balcus/Git-Stats.git
 ```
 2. Navigate to Project Directory :
 ```bash
