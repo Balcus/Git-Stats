@@ -38,6 +38,7 @@ def index():
             contributions_plot = api.makeActivityMap(contributions)
         else :
             contributions_plot = None
+            
         star_plot = api.makeStarPlot(repos_dict)
         total_stars = api.getTotalStars(repos_dict)
         language_distribution_plot = api.makeLanguageDistributionPlot(repos_dict)
